@@ -12,4 +12,12 @@ RUN mkdir -p /opt/kafka/plugins \
     && tar -zxf /tmp/debezium-connector-mysql-plugin.tar.gz -C /opt/kafka/plugins/ \
     && rm -rf /tmp/*
 
+# Add iceberg sink connector
+#  - https://github.com/getindata/kafka-connect-iceberg-sink
+ARG iceberg_sink_version=0.3.1
+RUN curl -fSL https://github.com/getindata/kafka-connect-iceberg-sink/releases/download/${iceberg_sink_version}/kafka-connect-iceberg-sink-${iceberg_sink_version}-plugin.zip \
+    -o /tmp/kafka-connect-iceberg-sink-${iceberg_sink_version}-plugin.zip \
+    && unzip /tmp/kafka-connect-iceberg-sink-${iceberg_sink_version}-plugin.zip -d /opt/kafka/plugins/
+
+
 USER 1001
