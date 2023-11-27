@@ -5,7 +5,7 @@
 * BASE IMAGE: 0.36.0-kafka-3.5.0
 
 ```bash
-export DEBEZIUM_VERSION=2.4.0.Final
+export DEBEZIUM_VERSION=2.4.1.Final
 export dt=$(date '+%Y.%m.%d-%H.%M')
 docker build \
   --platform linux/amd64 \

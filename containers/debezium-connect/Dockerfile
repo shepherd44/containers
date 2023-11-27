@@ -2,7 +2,7 @@ FROM quay.io/strimzi/kafka:0.36.0-kafka-3.5.0
 
 USER root:root
 
-ENV CONNECTOR_VERSION=2.4.0.Final
+ENV CONNECTOR_VERSION=2.4.1.Final
 RUN mkdir -p /opt/kafka/plugins \
     && curl -fSL https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/${CONNECTOR_VERSION}/debezium-connector-postgres-${CONNECTOR_VERSION}-plugin.tar.gz -o /tmp/debezium-connector-postgres-plugin.tar.gz \
     && tar -zxf /tmp/debezium-connector-postgres-plugin.tar.gz -C /opt/kafka/plugins/ \
@@ -10,6 +10,8 @@ RUN mkdir -p /opt/kafka/plugins \
     && tar -zxf /tmp/debezium-connector-mongodb-plugin.tar.gz -C /opt/kafka/plugins/ \
     && curl -fSL https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/${CONNECTOR_VERSION}/debezium-connector-mysql-${CONNECTOR_VERSION}-plugin.tar.gz -o /tmp/debezium-connector-mysql-plugin.tar.gz \
     && tar -zxf /tmp/debezium-connector-mysql-plugin.tar.gz -C /opt/kafka/plugins/ \
+    && curl -fSL https://repo1.maven.org/maven2/io/debezium/debezium-connector-jdbc/${CONNECTOR_VERSION}/debezium-connector-jdbc-${CONNECTOR_VERSION}-plugin.tar.gz -o /tmp/debezium-connector-jdbc-plugin.tar.gz \
+    && tar -zxf /tmp/debezium-connector-jdbc-plugin.tar.gz -C /opt/kafka/plugins/ \
     && rm -rf /tmp/*
 
 # Add iceberg sink connector
