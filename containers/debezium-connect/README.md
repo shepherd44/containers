@@ -19,6 +19,9 @@ docker build \
   --build-arg CP_VERSION=${CP_VERSION} \
   --build-arg STRIMZI_VERSION=${STRIMZI_VERSION} \
   --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
+  --build-arg AVRO_VERSION=1.11.3 \
+  --build-arg APICURIO_VERSION=2.5.8.Final \
+  --build-arg GUAVA_VERSION=33.0.0-jre \
   -t shepherd9664/debezium-connect:${TAG} \
   ./
 ```

@@ -17,18 +17,23 @@ RUN mkdir -p /opt/kafka/plugins \
     && tar -zxf /tmp/debezium-connector-jdbc-plugin.tar.gz -C /opt/kafka/plugins/ \
     && rm -rf /tmp/*
 
+COPY ./docker-maven-download.sh /usr/local/bin/docker-maven-download
+
 ARG CP_VERSION
-ADD https://packages.confluent.io/maven/io/confluent/common-config/${CP_VERSION}/common-config-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/common-utils/${CP_VERSION}/common-utils-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-connect-avro-converter/${CP_VERSION}/kafka-connect-avro-converter-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-connect-avro-data/${CP_VERSION}/kafka-connect-avro-data-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-avro-serializer/${CP_VERSION}/kafka-avro-serializer-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-schema-serializer/${CP_VERSION}/kafka-schema-serializer-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-schema-converter/${CP_VERSION}/kafka-schema-converter-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-schema-registry-client/${CP_VERSION}/kafka-schema-registry-client-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-connect-json-schema-converter/${CP_VERSION}/kafka-connect-json-schema-converter-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-json-schema-provider/${CP_VERSION}/kafka-json-schema-provider-${CP_VERSION}.jar /opt/kafka/plugins/
-ADD https://packages.confluent.io/maven/io/confluent/kafka-json-schema-serializer/${CP_VERSION}/kafka-json-schema-serializer-${CP_VERSION}.jar /opt/kafka/plugins/
+ARG AVRO_VERSION
+ARG APICURIO_VERSION
+ARG GUAVA_VERSION
+ENV MAVEN_DEP_DESTINATION=$KAFKA_HOME/libs
+RUN docker-maven-download confluent kafka-connect-avro-converter "$CP_VERSION" && \
+    docker-maven-download confluent kafka-connect-avro-data "$CP_VERSION" && \
+    docker-maven-download confluent kafka-avro-serializer "$CP_VERSION" && \
+    docker-maven-download confluent kafka-schema-serializer "$CP_VERSION" && \
+    docker-maven-download confluent kafka-schema-registry-client "$CP_VERSION" && \
+    docker-maven-download confluent common-config "$CP_VERSION" && \
+    docker-maven-download confluent common-utils "$CP_VERSION" && \
+    docker-maven-download central org/apache/avro avro "$AVRO_VERSION" && \
+    docker-maven-download apicurio "$APICURIO_VERSION" && \
+    docker-maven-download central com/google/guava guava "$GUAVA_VERSION"
 
 # Add iceberg sink connector
 #  - https://github.com/getindata/kafka-connect-iceberg-sink
