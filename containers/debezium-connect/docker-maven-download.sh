@@ -18,6 +18,7 @@ MAVEN_REPO_CENTRAL=${MAVEN_REPO_CENTRAL:-"https://repo1.maven.org/maven2"}
 MAVEN_REPOS_ADDITIONAL=${MAVEN_REPOS_ADDITIONAL:-""}
 MAVEN_REPO_CONFLUENT=${MAVEN_REPO_CONFLUENT:-"https://packages.confluent.io/maven"}
 MAVEN_DEP_DESTINATION=${MAVEN_DEP_DESTINATION}
+DEBEZIUM_PLUGIN_DIR=${DEBEZIUM_PLUGIN_DIR}
 EXTERNAL_LIBS_DIR=${EXTERNAL_LIBS_DIR}
 
 maven_dep() {
@@ -49,7 +50,7 @@ maven_confluent_dep() {
 
 maven_debezium_plugin() {
     maven_dep $MAVEN_REPO_CENTRAL "io/debezium" "debezium-connector-$1" $2 "debezium-connector-$1-$2-plugin.tar.gz" $3
-    tar -xzf "$DOWNLOAD_FILE" -C "$MAVEN_DEP_DESTINATION" && rm "$DOWNLOAD_FILE"
+    tar -xzf "$DOWNLOAD_FILE" -C "$DEBEZIUM_PLUGIN_DIR" && rm "$DOWNLOAD_FILE"
 }
 
 maven_debezium_optional() {
