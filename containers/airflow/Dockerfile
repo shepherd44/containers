@@ -1,4 +1,6 @@
-FROM apache/airflow:2.5.1-python3.10
+ARG AIRFLOW_VERSION
+ARG PYTHON_VERSION="3.11"
+FROM apache/airflow:${AIRFLOW_VERSION}-python${PYTHON_VERSION}
 
 #USER root
 #RUN apt-get update \
