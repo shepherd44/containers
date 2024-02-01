@@ -1,0 +1,10 @@
+airflow:
+  - 'containers/airflow/**'
+cp_kafka_connect:
+  - 'containers/cp-kafka-connect/**'
+debezium_connect:
+  - 'containers/debezium-connect/**'
+hadoop_base:
+  - 'containers/hadoop-base/**'
+hive_metastore:
+  - 'containers/hive-metastore/**'
