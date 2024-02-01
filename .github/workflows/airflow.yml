@@ -27,7 +27,7 @@ jobs:
   build:
     if: needs.files-changed.outputs.airflow == 'true'
     needs: files-changed
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout source code
