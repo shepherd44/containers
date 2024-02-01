@@ -1,5 +1,7 @@
 # Airflow Docker Image
 
+airflow version: 2.8.1
+
 ## build
 
 ```shell
