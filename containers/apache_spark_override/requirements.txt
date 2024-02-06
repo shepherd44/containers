@@ -1,0 +1,8 @@
+duckdb
+requests
+pendulum
+boto3
+numpy
+pandas
+pyarrow
+pymongo
