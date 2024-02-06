@@ -1,4 +1,4 @@
-name: apache-spark-override-3-5
+name: apache-spark-override-3-4
 
 on:
   push:
@@ -44,9 +44,9 @@ jobs:
         with:
           images: shepherd9664/spark
           tags: |
-            type=raw,value=3.5-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
-            type=raw,value=3.5.0-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
-            3.5-latest
+            type=raw,value=3.4-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            type=raw,value=3.4.2-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            3.4-latest
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
@@ -63,7 +63,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            SPARK_VERSION=3.5.0
+            SPARK_VERSION=3.4.2
             HADOOP_VERSION=3.3.4
             SCALA_VERSION=2.12
             HIVE_VERSION=2.3.9
