@@ -9,4 +9,4 @@ hadoop_base:
 hive_metastore:
   - 'containers/hive-metastore/**'
 apache_spark_override:
-  - 'containers/spark/**'
+  - 'containers/apache_spark_override/**'

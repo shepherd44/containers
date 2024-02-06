@@ -1,6 +1,7 @@
-# Spark
+# Apache Spark Override
 
 Spark for kubernetes
+- base docker image: apache/spark
 
 ## spark 
 
