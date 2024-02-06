@@ -47,6 +47,8 @@ WORKDIR /
 # python dependencies
 COPY requirements.txt /opt/requirements.txt
 RUN pip3 install --no-cache-dir -r /opt/requirements.txt
+RUN mkdir -p /opt/python-libs
+ENV PYTHONPATH=/opt/python-libs/:${PYTHONPATH}
 
 # spark runtime dependencies
 COPY --from=maven_build_spark /app/target/dependency/*.jar ${SPARK_HOME}/jars/
