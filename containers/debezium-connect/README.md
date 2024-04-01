@@ -22,6 +22,7 @@ docker build \
   --build-arg AVRO_VERSION=1.11.3 \
   --build-arg APICURIO_VERSION=2.5.8.Final \
   --build-arg GUAVA_VERSION=30.1-jre \
+  --build-arg COMMONS_VERSION=1.21 \
   -t shepherd9664/debezium-connect:${TAG} \
   ./
 ```
