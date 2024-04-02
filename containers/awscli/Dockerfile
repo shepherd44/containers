@@ -1,4 +1,7 @@
-FROM amazon/aws-cli:2.13.2
+ARG AWSCLI_VERSION
+FROM amazon/aws-cli:${AWSCLI_VERSION}
 
-RUN amazon-linux-extras enable postgresql14
-RUN yum install -y postgresql
+ARG POSTGRES_VERSION
+
+#RUN amazon-linux-extras enable postgresql${POSTGRES_VERSION}
+RUN yum install -y postgresql${POSTGRES_VERSION} gzip
