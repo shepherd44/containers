@@ -2,7 +2,7 @@
 
 ```shell
 export AWSCLI_VERSION=2.15.34
-export POSTGRES_VERSION=15
+export POSTGRES_VERSION=14
 export TAG=${AWSCLI_VERSION}-postgres${POSTGRES_VERSION}-$(date +%y.%m.%d-%H%M)
 docker build \
   --platform linux/amd64 \
