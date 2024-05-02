@@ -51,31 +51,31 @@ spec:
           volumeMounts:
             - mountPath: /usr/share/confluent-hub-components
               name: plugins
-          image: confluentinc/cp-kafka-connect:7.5.2
+          image: confluentinc/cp-kafka-connect:7.6.1
           imagePullPolicy: IfNotPresent
           env:
             - name: CONFLUENT_VERSION
-              value: "7.5.2"
+              value: "7.6.1"
           command: ["/bin/sh", "-c"]
           args:
             - |
-              confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.4
-              confluent-hub install --no-prompt debezium/debezium-connector-postgresql:2.2.1
-              confluent-hub install --no-prompt debezium/debezium-connector-mongodb:2.2.1
-              confluent-hub install --no-prompt tabular/iceberg-kafka-connect:0.6.5
-              confluent-hub install --no-prompt mongodb/kafka-connect-mongodb:1.11.1
+              confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.6
+              confluent-hub install --no-prompt debezium/debezium-connector-postgresql:2.5.3
+              confluent-hub install --no-prompt debezium/debezium-connector-mongodb:2.4.2
+              confluent-hub install --no-prompt tabular/iceberg-kafka-connect:0.6.16
+              confluent-hub install --no-prompt mongodb/kafka-connect-mongodb:1.11.2
               confluent-hub install --no-prompt confluentinc/kafka-connect-avro-converter:${CONFLUENT_VERSION}
               confluent-hub install --no-prompt confluentinc/kafka-connect-json-schema-converter:${CONFLUENT_VERSION}
       containers:
         - name: cp-kafka-connect
-          image: confluentinc/cp-kafka-connect:7.5.2
+          image: confluentinc/cp-kafka-connect:7.6.1
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /usr/share/confluent-hub-components
               name: plugins
           env:
             - name: CONFLUENT_VERSION
-              value: "7.5.2"
+              value: "7.6.1"
             - name: CONNECT_BOOTSTRAP_SERVERS
               value: kafka-bootstrap.kafka.svc.cluster.local:9092
             - name: CONNECT_REST_PORT
