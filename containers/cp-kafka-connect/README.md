@@ -4,7 +4,7 @@
 
 ```shell
 dt=`date +%y.%m.%d-%H%M`
-export CP_VERSION=7.5.3
+export CP_VERSION=7.6.1
 export IMAGE_NAME=cp-kafka-connect
 export TAG=${CP_VERSION}-${dt}
 docker build \
