@@ -10,19 +10,13 @@
 export STRIMZI_VERSION=0.36.0
 export KAFKA_VERSION=3.5.0
 export DEBEZIUM_VERSION=2.5.0.Final
-export CP_VERSION=7.5.3
 export dt=$(date '+%Y.%m.%d-%H.%M')
 export TAG=${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}-${DEBEZIUM_VERSION}-${dt}
 docker build \
   --platform linux/amd64 \
   --build-arg DEBEZIUM_VERSION=${DEBEZIUM_VERSION} \
-  --build-arg CP_VERSION=${CP_VERSION} \
   --build-arg STRIMZI_VERSION=${STRIMZI_VERSION} \
   --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
-  --build-arg AVRO_VERSION=1.11.3 \
-  --build-arg APICURIO_VERSION=2.5.8.Final \
-  --build-arg GUAVA_VERSION=30.1-jre \
-  --build-arg COMMONS_VERSION=1.21 \
   -t shepherd9664/debezium-connect:${TAG} \
   ./
 ```
@@ -31,4 +25,5 @@ docker build \
 
 ```bash
 docker push shepherd9664/debezium-connect:${TAG}
+echo shepherd9664/debezium-connect:${TAG}
 ```
