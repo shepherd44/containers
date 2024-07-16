@@ -34,5 +34,11 @@
             <artifactId>kafka-connect-json-schema-converter</artifactId>
             <version>${confluent.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.confluent/kafka-connect-avro-converter -->
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-connect-avro-converter</artifactId>
+            <version>${confluent.version}</version>
+        </dependency>
     </dependencies>
 </project>
