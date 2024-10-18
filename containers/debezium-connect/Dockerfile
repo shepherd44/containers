@@ -5,7 +5,7 @@ FROM maven:3.9.7 as maven_download_confluent
 WORKDIR /app
 
 COPY pom.xml .
-RUN mvn dependency:copy-dependencies
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:copy-dependencies
 
 ########build stage########
 FROM quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}

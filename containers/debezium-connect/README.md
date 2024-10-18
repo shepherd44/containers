@@ -2,14 +2,14 @@
 
 ## build
 
-* BASE IMAGE: 0.36.0-kafka-3.5.0
+* BASE IMAGE: 0.37.0-kafka-3.5.0
 * [strimzi kafka image](https://quay.io/repository/strimzi/kafka?tab=tags)
 * [confluent maven](https://packages.confluent.io/maven/)
 
 ```bash
-export STRIMZI_VERSION=0.36.0
+export STRIMZI_VERSION=0.37.0
 export KAFKA_VERSION=3.5.0
-export DEBEZIUM_VERSION=2.5.0.Final
+export DEBEZIUM_VERSION=2.7.0.Final
 export dt=$(date '+%Y.%m.%d-%H.%M')
 export TAG=${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}-${DEBEZIUM_VERSION}-${dt}
 docker build \
