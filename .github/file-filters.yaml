@@ -1,5 +1,7 @@
 airflow:
   - 'containers/airflow/**'
+awscli:
+  - 'containers/awscli/**'
 cp_kafka_connect:
   - 'containers/cp-kafka-connect/**'
 debezium_connect:

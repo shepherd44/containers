@@ -1,12 +1,15 @@
-name: apache-spark-override-3-3
+name: awscli
 
 on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/awscli.yml'
+      - 'containers/awscli/**'
+
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   files-changed:
@@ -14,11 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
-      apache_spark_override: ${{ steps.changes.outputs.apache_spark_override }}
+      awscli: ${{ steps.changes.outputs.awscli }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@main
-
       - name: Check for backend file changes
         uses: dorny/paths-filter@v2
         id: changes
@@ -27,42 +29,33 @@ jobs:
           filters: .github/file-filters.yaml
 
   build:
-    if: needs.files-changed.outputs.apache_spark_override == 'true'
+    if: needs.files-changed.outputs.awscli == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: shepherd9664/spark
+          images: shepherd9664/awscli
           tags: |
-            type=raw,value=3.3.3-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
-
+            type=raw,value={{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            latest
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and Push
+      - name: Build
         uses: docker/build-push-action@v4
         with:
-          context: ./containers/apache_spark_override
-          file: containers/apache_spark_override/Dockerfile
+          context: ./containers/awscli
+          file: containers/awscli/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            SPARK_VERSION=3.3.3
-            HADOOP_VERSION=3.3.2
-            SCALA_VERSION=2.12
-            HIVE_VERSION=2.3.9
-            ICEBERG_VERSION=1.4.3

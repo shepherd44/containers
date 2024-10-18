@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/airflow.yml'
+      - 'containers/airflow/**'
+
   pull_request:
     branches: [ "main" ]
 
