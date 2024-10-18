@@ -4,7 +4,7 @@
 
 ```shell
 dt=`date +%y.%m.%d-%H%M`
-export CP_VERSION=7.6.1
+export CP_VERSION=7.7.1
 export IMAGE_NAME=cp-kafka-connect
 export TAG=${CP_VERSION}-${dt}
 docker build \
@@ -55,7 +55,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: CONFLUENT_VERSION
-              value: "7.6.1"
+              value: "7.7.1"
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -75,7 +75,7 @@ spec:
               name: plugins
           env:
             - name: CONFLUENT_VERSION
-              value: "7.6.1"
+              value: "7.7.1"
             - name: CONNECT_BOOTSTRAP_SERVERS
               value: kafka-bootstrap.kafka.svc.cluster.local:9092
             - name: CONNECT_REST_PORT
@@ -89,11 +89,11 @@ spec:
             - name: CONNECT_STATUS_STORAGE_TOPIC
               value: _cp-kafka-connect-status
             - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
-              value: "1"
+              value: "3"
             - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
-              value: "1"
+              value: "3"
             - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
-              value: "1"
+              value: "3"
             - name: CONNECT_KEY_CONVERTER
               value: org.apache.kafka.connect.json.JsonConverter
             - name: CONNECT_VALUE_CONVERTER
