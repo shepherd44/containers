@@ -1,12 +1,12 @@
-name: airflow
+name: awscli
 
 on:
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/airflow.yml'
-      - 'containers/airflow/**'
+      - '.github/workflows/awscli.yml'
+      - 'containers/awscli/**'
 
   pull_request:
     branches: [ "main" ]
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
-      airflow: ${{ steps.changes.outputs.airflow }}
+      awscli: ${{ steps.changes.outputs.awscli }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@main
@@ -29,7 +29,7 @@ jobs:
           filters: .github/file-filters.yaml
 
   build:
-    if: needs.files-changed.outputs.airflow == 'true'
+    if: needs.files-changed.outputs.awscli == 'true'
     needs: files-changed
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -42,10 +42,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: shepherd9664/airflow
+          images: shepherd9664/awscli
           tags: |
-            type=raw,value=v2.8-python3.11-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
-            v2.8-python3.11-latest
+            type=raw,value={{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            latest
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
@@ -54,8 +54,8 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v4
         with:
-          context: ./containers/airflow
-          file: containers/airflow/Dockerfile
+          context: ./containers/awscli
+          file: containers/awscli/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

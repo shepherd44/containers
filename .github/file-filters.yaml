@@ -1,5 +1,7 @@
 airflow:
   - 'containers/airflow/**'
+awscli:
+  - 'containers/awscli/**'
 cp_kafka_connect:
   - 'containers/cp-kafka-connect/**'
 debezium_connect:
@@ -8,3 +10,5 @@ hadoop_base:
   - 'containers/hadoop-base/**'
 hive_metastore:
   - 'containers/hive-metastore/**'
+apache_spark_override:
+  - 'containers/apache_spark_override/**'
