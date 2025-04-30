@@ -25,4 +25,10 @@ RUN mkdir -p $KAFKA_HOME/plugins && \
 
 COPY --from=maven_download_confluent /app/target/dependency/*.jar ${KAFKA_HOME}/plugins/libs/
 
+RUN curl https://github.com/databricks/iceberg-kafka-connect/releases/download/v0.6.19/iceberg-kafka-connect-runtime-hive-0.6.19.zip -o /tmp/iceberg-kafka-connect-runtime-hive-0.6.19.zip -L \
+    && unzip /tmp/iceberg-kafka-connect-runtime-hive-0.6.19.zip -d /tmp \
+    && cp -rf /tmp/iceberg-kafka-connect-runtime-hive-0.6.19/lib ${KAFKA_HOME}/plugins/iceberg-kafka-connect-runtime-hive-0.6.19 \
+    && rm /tmp/iceberg-kafka-connect-runtime-hive-0.6.19.zip \
+    && rm -rf /tmp/iceberg-kafka-connect-runtime-hive-0.6.19
+
 USER 1001
