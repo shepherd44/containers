@@ -3,8 +3,12 @@
 ## build
 
 ```shell
-export TAG=15.6-$(date +%y.%m.%d-%H%M)
-docker build --platform linux/amd64 -t shepherd9664/postgres-awscli:$TAG .
+export POSTGRES_VERSION=17.5
+export TAG=${POSTGRES_VERSION}-$(date +%y.%m.%d-%H%M)
+docker build \
+  --build-arg POSTGRES_VERSION=${POSTGRES_VERSION} \
+  --platform linux/amd64 \
+  -t shepherd9664/postgres-awscli:$TAG .
 ```
 
 ## push

@@ -1,4 +1,6 @@
-FROM postgres:15.6-bullseye
+ARG POSTGRES_VERSION
+
+FROM postgres:${POSTGRES_VERSION}
 
 RUN apt-get update -y \
     && apt-get install -y curl unzip \
