@@ -10,27 +10,11 @@ on:
 
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'containers/awscli/**'
 
 jobs:
-  files-changed:
-    name: detect file change
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    outputs:
-      awscli: ${{ steps.changes.outputs.awscli }}
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@main
-      - name: Check for backend file changes
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          token: ${{ github.token }}
-          filters: .github/file-filters.yaml
-
   build:
-    if: needs.files-changed.outputs.awscli == 'true'
-    needs: files-changed
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
