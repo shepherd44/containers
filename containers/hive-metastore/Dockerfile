@@ -9,6 +9,9 @@ RUN apt-get update \
 ARG postgresql_jar_version=42.5.1
 ARG hadoop_aws_version=3.3.4
 ARG aws_java_sdk_bundle_version=1.12.396
+# DbNotificationListener(메타데이터 변경 이벤트 → NOTIFICATION_LOG 적재) 제공 jar.
+# standalone-metastore 배포본에는 미포함이라 별도 추가. DataHub 등 메타데이터 감사/카탈로그용.
+ARG hive_hcatalog_version=3.1.3
 ENV HIVE_VERSION=3.1.3
 ENV HIVE_METASTORE_URL=https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${HIVE_VERSION}/hive-standalone-metastore-${HIVE_VERSION}-bin.tar.gz
 ENV METASTORE_HOME=/opt/hive-metastore
@@ -23,7 +26,9 @@ RUN mkdir -p /opt \
     && curl -fSL https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${hadoop_aws_version}/hadoop-aws-${hadoop_aws_version}.jar \
       -o ${METASTORE_HOME}/lib/hadoop-aws-${hadoop_aws_version}.jar \
     && curl -fSL https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${aws_java_sdk_bundle_version}/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar \
-      -o /${METASTORE_HOME}/lib/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar
+      -o /${METASTORE_HOME}/lib/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar \
+    && curl -fSL https://repo1.maven.org/maven2/org/apache/hive/hcatalog/hive-hcatalog-server-extensions/${hive_hcatalog_version}/hive-hcatalog-server-extensions-${hive_hcatalog_version}.jar \
+      -o ${METASTORE_HOME}/lib/hive-hcatalog-server-extensions-${hive_hcatalog_version}.jar
 
 COPY conf ${METASTORE_HOME}/conf
 COPY start.sh /opt/start.sh
