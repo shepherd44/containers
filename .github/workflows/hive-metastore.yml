@@ -1,0 +1,61 @@
+name: hive-metastore
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/hive-metastore.yml'
+      - 'containers/hive-metastore/**'
+
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  files-changed:
+    name: detect file change
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      hive_metastore: ${{ steps.changes.outputs.hive_metastore }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@main
+      - name: Check for backend file changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          token: ${{ github.token }}
+          filters: .github/file-filters.yaml
+
+  build:
+    if: needs.files-changed.outputs.hive_metastore == 'true'
+    needs: files-changed
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: shepherd9664/hive-metastore
+          tags: |
+            type=raw,value=3.1.3-hadoop3.3.4-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            3.1.3-hadoop3.3.4-latest
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build
+        uses: docker/build-push-action@v4
+        with:
+          context: ./containers/hive-metastore
+          file: containers/hive-metastore/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
