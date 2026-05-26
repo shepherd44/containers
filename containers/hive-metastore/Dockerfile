@@ -1,41 +1,30 @@
-FROM shepherd9664/hadoop-base:3.3.4
+# Hive standalone metastore 4.0.0.
+# 공식 apache/hive:4.0.0 을 베이스로 사용 → entrypoint 환경변수 매핑(SERVICE_NAME/DB_DRIVER/
+# IS_RESUME/SERVICE_OPTS/HIVE_CUSTOM_CONF_DIR/METASTORE_PORT), Java 8, Hadoop 3.3.6,
+# hive-hcatalog-server-extensions-4.0.0(DbNotificationListener) 를 그대로 상속한다.
+# metastore-site.xml 은 이미지에 굽지 않고 런타임에 HIVE_CUSTOM_CONF_DIR(k8s ConfigMap)로 주입.
+#
+# 추가하는 것: S3A(Ceph RGW) 접근용 hadoop-aws + aws-java-sdk-bundle (Hadoop 3.3.6 정렬),
+#             PostgreSQL JDBC 드라이버. (공식 이미지에는 미포함)
+#
+# 참고: 이전 3.1.3(standalone-metastore tarball + 자체 start.sh 렌더링) 구성은 git 이력 참조.
+# 기존 3.1.3 이미지 태그(3.1.3-hadoop3.3.4-*)는 레지스트리에 남아있어 롤백 가능.
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ARG hadoop_aws_version=3.3.6
+ARG aws_java_sdk_bundle_version=1.12.367
+ARG postgresql_jar_version=42.7.4
 
-ARG postgresql_jar_version=42.5.1
-ARG hadoop_aws_version=3.3.4
-ARG aws_java_sdk_bundle_version=1.12.396
-# DbNotificationListener(메타데이터 변경 이벤트 → NOTIFICATION_LOG 적재) 제공 jar.
-# standalone-metastore 배포본에는 미포함이라 별도 추가. DataHub 등 메타데이터 감사/카탈로그용.
-ARG hive_hcatalog_version=3.1.3
-ENV HIVE_VERSION=3.1.3
-ENV HIVE_METASTORE_URL=https://repo1.maven.org/maven2/org/apache/hive/hive-standalone-metastore/${HIVE_VERSION}/hive-standalone-metastore-${HIVE_VERSION}-bin.tar.gz
-ENV METASTORE_HOME=/opt/hive-metastore
-RUN mkdir -p /opt \
-    && curl -fSL ${HIVE_METASTORE_URL} -o /tmp/hive-standalone-metastore-${HIVE_VERSION}-bin.tar.gz \
-    && tar -zxf /tmp/hive-standalone-metastore-${HIVE_VERSION}-bin.tar.gz -C /opt/ \
-    && rm -rf /tmp/hive-standalone-metastore-${HIVE_VERSION}-bin.tar.gz \
-    && ln -s /opt/apache-hive-metastore-${HIVE_VERSION}-bin ${METASTORE_HOME} \
-    && curl -fSL https://jdbc.postgresql.org/download/postgresql-${postgresql_jar_version}.jar \
-      -o /opt/hive-metastore/lib/postgresql-${postgresql_jar_version}.jar \
-    && chmod 644 /opt/hive-metastore/lib/postgresql-${postgresql_jar_version}.jar \
-    && curl -fSL https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${hadoop_aws_version}/hadoop-aws-${hadoop_aws_version}.jar \
-      -o ${METASTORE_HOME}/lib/hadoop-aws-${hadoop_aws_version}.jar \
-    && curl -fSL https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${aws_java_sdk_bundle_version}/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar \
-      -o /${METASTORE_HOME}/lib/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar \
-    && curl -fSL https://repo1.maven.org/maven2/org/apache/hive/hcatalog/hive-hcatalog-server-extensions/${hive_hcatalog_version}/hive-hcatalog-server-extensions-${hive_hcatalog_version}.jar \
-      -o ${METASTORE_HOME}/lib/hive-hcatalog-server-extensions-${hive_hcatalog_version}.jar
+FROM curlimages/curl:8.11.1 AS jars
+ARG hadoop_aws_version
+ARG aws_java_sdk_bundle_version
+ARG postgresql_jar_version
+WORKDIR /jars
+RUN curl -fsSL https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/${hadoop_aws_version}/hadoop-aws-${hadoop_aws_version}.jar -o hadoop-aws-${hadoop_aws_version}.jar \
+    && curl -fsSL https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/${aws_java_sdk_bundle_version}/aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar -o aws-java-sdk-bundle-${aws_java_sdk_bundle_version}.jar \
+    && curl -fsSL https://repo1.maven.org/maven2/org/postgresql/postgresql/${postgresql_jar_version}/postgresql-${postgresql_jar_version}.jar -o postgresql-${postgresql_jar_version}.jar
 
-COPY conf ${METASTORE_HOME}/conf
-COPY start.sh /opt/start.sh
-RUN chmod a+x /opt/start.sh
-
-EXPOSE 9083
-
-ENTRYPOINT ["/opt/start.sh"]
-
-CMD ["/opt/hive-metastore/bin/start-metastore"]
+FROM apache/hive:4.0.0
+USER root
+COPY --from=jars /jars/*.jar /opt/hive/lib/
+RUN chmod 644 /opt/hive/lib/hadoop-aws-*.jar /opt/hive/lib/aws-java-sdk-bundle-*.jar /opt/hive/lib/postgresql-*.jar
+USER hive
