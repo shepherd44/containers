@@ -7,7 +7,7 @@
 * [confluent maven](https://packages.confluent.io/maven/)
 
 ```shell
-aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 101047223697.dkr.ecr.ap-northeast-2.amazonaws.com
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com
 ```
 
 ```bash
@@ -23,7 +23,7 @@ docker build \
   --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
   -t shepherd9664/debezium-connect:${TAG} \
   ./
-docker tag shepherd9664/debezium-connect:${TAG} 101047223697.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
+docker tag shepherd9664/debezium-connect:${TAG} <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
 ```
 
 ## push
@@ -41,12 +41,12 @@ docker build \
   --build-arg KAFKA_VERSION=${KAFKA_VERSION} \
   -t shepherd9664/debezium-connect:${TAG} \
   ./
-docker tag shepherd9664/debezium-connect:${TAG} 101047223697.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
+docker tag shepherd9664/debezium-connect:${TAG} <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
 ```
 
 ```shell
-docker tag shepherd9664/debezium-connect:${TAG} 101047223697.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
-docker push 101047223697.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
+docker tag shepherd9664/debezium-connect:${TAG} <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
+docker push <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/de/debezium:${TAG}
 docker push shepherd9664/debezium-connect:${TAG}
 echo shepherd9664/debezium-connect:${TAG}
 ```
