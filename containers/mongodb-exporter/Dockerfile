@@ -35,11 +35,13 @@ RUN ARCH="${TARGETARCH:-amd64}" ; \
 # A silently mismatched binary defeats the point of pinning the version.
 RUN /bin/mongodb_exporter --version 2>&1 | grep -q "${EXPORTER_VERSION}"
 
+# curl is only needed to fetch the binary above. bitnami drops it here with its
+# own prebuildfs helper; we do not vendor prebuildfs, so use apt directly.
 RUN apt-get update && apt-get upgrade -y && \
+    apt-get purge -y --auto-remove curl && \
     apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 RUN chmod g+rwX /opt/bitnami
-RUN uninstall_packages curl
 RUN find / -perm /6000 -type f -exec chmod a-s {} \; || true
 
 EXPOSE 9216
