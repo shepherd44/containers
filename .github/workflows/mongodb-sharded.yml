@@ -1,0 +1,125 @@
+name: mongodb-sharded
+
+# 8.0 / 8.2 두 시리즈를 각각 빌드한다.
+# 버전은 이 파일의 matrix 에서만 관리한다 — Dockerfile 의 ARG 기본값과 이미지 태그가
+# 갈라지지 않도록 build-arg 로 함께 내려보낸다.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/mongodb-sharded.yml'
+      - 'containers/mongodb-sharded/**'
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'containers/mongodb-sharded/**'
+
+  workflow_dispatch:
+    inputs:
+      series:
+        description: '빌드할 시리즈 (비우면 전부)'
+        required: false
+        type: choice
+        default: ''
+        options: [ '', '8.0', '8.2' ]
+      mongodb_version:
+        description: '버전 오버라이드 (series 를 지정했을 때만 의미 있음)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # LTS. 운영(aiaas-search-mongodb)이 쓰는 계열.
+          - series: '8.0'
+            version: '8.0.30'
+          - series: '8.2'
+            version: '8.2.12'
+    steps:
+      - name: Skip unselected series
+        id: gate
+        run: |
+          SEL="${{ github.event.inputs.series }}"
+          if [ -n "$SEL" ] && [ "$SEL" != "${{ matrix.series }}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "series ${{ matrix.series }} skipped (selected: $SEL)"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout source code
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v3
+
+      - name: Resolve version
+        if: steps.gate.outputs.run == 'true'
+        id: ver
+        run: |
+          V="${{ matrix.version }}"
+          SEL="${{ github.event.inputs.series }}"
+          OVR="${{ github.event.inputs.mongodb_version }}"
+          # 버전 오버라이드는 시리즈를 명시했을 때만 적용한다. 안 그러면 8.0 빌드에
+          # 8.2 버전이 박히는 사고가 난다.
+          if [ -n "$OVR" ] && [ "$SEL" = "${{ matrix.series }}" ]; then V="$OVR"; fi
+          case "$V" in
+            "${{ matrix.series }}".*) ;;
+            *) echo "::error::version $V does not belong to series ${{ matrix.series }}"; exit 1 ;;
+          esac
+          echo "value=$V" >> "$GITHUB_OUTPUT"
+          echo "building MongoDB $V (series ${{ matrix.series }})"
+
+      - name: Verify upstream tarball exists
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          # 없는 버전으로 빌드를 시작하면 레이어를 다 쌓고 마지막에 죽는다. 먼저 확인한다.
+          URL="https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-debian12-${{ steps.ver.outputs.value }}.tgz"
+          CODE=$(curl -sS -o /dev/null -w '%{http_code}' -I "$URL")
+          echo "$URL -> $CODE"
+          if [ "$CODE" != "200" ]; then
+            echo "::error::upstream tarball not published for ${{ steps.ver.outputs.value }} (HTTP $CODE)"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        if: steps.gate.outputs.run == 'true'
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker meta
+        if: steps.gate.outputs.run == 'true'
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: shepherd9664/mongodb-sharded
+          tags: |
+            type=raw,value=${{ steps.ver.outputs.value }}-debian-12-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            type=raw,value=${{ steps.ver.outputs.value }}-debian-12-latest
+            type=raw,value=${{ matrix.series }}-debian-12-latest
+
+      - name: Login to DockerHub
+        if: steps.gate.outputs.run == 'true'
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build
+        if: steps.gate.outputs.run == 'true'
+        uses: docker/build-push-action@v4
+        with:
+          context: ./containers/mongodb-sharded/${{ matrix.series }}
+          file: containers/mongodb-sharded/${{ matrix.series }}/Dockerfile
+          # 공식 debian12 tarball 이 x86_64 만 있어서 amd64 단일 플랫폼이다.
+          platforms: linux/amd64
+          build-args: |
+            MONGODB_VERSION=${{ steps.ver.outputs.value }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
