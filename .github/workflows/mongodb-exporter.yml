@@ -1,0 +1,55 @@
+name: mongodb-exporter
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/mongodb-exporter.yml'
+      - 'containers/mongodb-exporter/**'
+
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'containers/mongodb-exporter/**'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: shepherd9664/mongodb-exporter
+          tags: |
+            type=raw,value=0.53.0-debian-12-{{date 'YYYY.MM.DD-HHmm' tz='Asia/Seoul'}}
+            type=raw,value=0.53.0-debian-12-latest
+            type=raw,value=0-debian-12-latest
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./containers/mongodb-exporter
+          file: containers/mongodb-exporter/Dockerfile
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            EXPORTER_VERSION=0.53.0
