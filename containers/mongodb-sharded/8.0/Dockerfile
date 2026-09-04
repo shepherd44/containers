@@ -89,7 +89,7 @@ RUN if [ "${OS_ARCH}" != "amd64" ]; then \
     TARBALL="mongodb-linux-x86_64-debian12-${MONGODB_VERSION}.tgz" ; \
     curl -SsLf "https://fastdl.mongodb.org/linux/${TARBALL}" -O ; \
     curl -SsLf "https://fastdl.mongodb.org/linux/${TARBALL}.sha256" -o "${TARBALL}.sha256" ; \
-    echo "$(tr -d '\n' < "${TARBALL}.sha256")  ${TARBALL}" | sha256sum -c - ; \
+    sha256sum -c "${TARBALL}.sha256" ; \
     tar -zxf "${TARBALL}" ; \
     SRC="/tmp/mongodb-linux-x86_64-debian12-${MONGODB_VERSION}/bin" ; \
     install -m 0755 "${SRC}/mongod" /opt/bitnami/mongodb/bin/mongod ; \
