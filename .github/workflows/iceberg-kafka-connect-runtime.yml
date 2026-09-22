@@ -1,0 +1,145 @@
+name: iceberg-kafka-connect-runtime
+
+# Apache Iceberg 는 Kafka Connect 런타임 배포판(zip)을 발행하지 않는다.
+# kafka-connect/build.gradle 에 "there are no Maven artifacts so disable publishing tasks" 로
+# publishing 이 꺼져 있고, Maven Central 에도 GitHub 릴리스에도 zip 이 없다.
+# (databricks/iceberg-kafka-connect 가 이 zip 을 올려줬으나 v0.6.19, 2024-06-06 이후 끊겼다.)
+#
+# 그래서 직접 빌드해 이 저장소 릴리스 자산으로 올린다.
+# k8s-manifests 의 KafkaConnect spec.build 가 이 URL + sha512 를 참조한다.
+#
+# 수동 실행 전용이다. 새 Iceberg 버전이 GA 로 나왔을 때만 돌린다.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'apache/iceberg 의 git ref (예: apache-iceberg-1.12.0)'
+        required: true
+        default: 'apache-iceberg-1.12.0'
+      version:
+        description: '배포판 버전 문자열. 비우면 ref 에서 apache-iceberg- 를 떼어 쓴다'
+        required: false
+        default: ''
+      draft:
+        description: '릴리스를 draft 로 생성'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Resolve version
+        id: ver
+        env:
+          REF: ${{ inputs.ref }}
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${VERSION_INPUT}"
+          if [ -z "${version}" ]; then
+            version="${REF#apache-iceberg-}"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: ${version}"
+
+      - name: Checkout apache/iceberg
+        uses: actions/checkout@v4
+        with:
+          repository: apache/iceberg
+          ref: ${{ inputs.ref }}
+          persist-credentials: false
+
+      # build.gradle 의 getProjectVersion() 은 version.txt 가 없으면 git 태그에서 버전을 읽고
+      # MINOR 를 +1 한 -SNAPSHOT 을 돌려준다. 태그를 그대로 체크아웃해도 그렇다.
+      # version.txt 를 먼저 써서 그 경로를 막는다.
+      - name: Pin version
+        run: echo "${{ steps.ver.outputs.version }}" > version.txt
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # -D 셀렉터는 상류 kafka-connect-ci.yml 과 동일하다.
+      # Spark/Flink 모듈을 통째로 빼야 빌드가 현실적인 시간 안에 끝난다.
+      - name: Build hive distribution
+        run: |
+          ./gradlew -DsparkVersions= -DflinkVersions= -DkafkaVersions=3 \
+            :iceberg-kafka-connect:iceberg-kafka-connect-runtime:hiveDistZip \
+            -x javadoc
+
+      - name: Locate artifact
+        id: artifact
+        run: |
+          set -euo pipefail
+          dist_dir=kafka-connect/kafka-connect-runtime/build/distributions
+          zip=$(find "${dist_dir}" -maxdepth 1 -name '*-hive-*.zip' -print -quit)
+          if [ -z "${zip}" ]; then
+            echo "hive 배포판 zip 을 찾지 못했습니다. ${dist_dir} 내용:" >&2
+            ls -la "${dist_dir}" >&2 || true
+            exit 1
+          fi
+          sha512=$(sha512sum "${zip}" | awk '{print $1}')
+          echo "path=${zip}" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "${zip}")" >> "$GITHUB_OUTPUT"
+          echo "sha512=${sha512}" >> "$GITHUB_OUTPUT"
+          echo "size=$(du -h "${zip}" | cut -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: iceberg-kafka-connect-runtime-hive-${{ steps.ver.outputs.version }}
+          ZIP: ${{ steps.artifact.outputs.path }}
+          ZIP_NAME: ${{ steps.artifact.outputs.name }}
+          SHA512: ${{ steps.artifact.outputs.sha512 }}
+          SIZE: ${{ steps.artifact.outputs.size }}
+          SRC_REF: ${{ inputs.ref }}
+          DRAFT: ${{ inputs.draft }}
+        run: |
+          set -euo pipefail
+          notes=$(cat <<EOF
+          apache/iceberg \`${SRC_REF}\` 에서 빌드한 Kafka Connect 런타임 hive 배포판.
+
+          | | |
+          |---|---|
+          | 파일 | \`${ZIP_NAME}\` |
+          | 크기 | ${SIZE} |
+          | sha512 | \`${SHA512}\` |
+
+          k8s-manifests 의 KafkaConnect \`spec.build.plugins[].artifacts\` 에 넣을 값:
+
+          \`\`\`yaml
+          - type: zip
+            url: https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${ZIP_NAME}
+            sha512sum: ${SHA512}
+          \`\`\`
+          EOF
+          )
+          draft_flag=""
+          if [ "${DRAFT}" = "true" ]; then draft_flag="--draft"; fi
+          gh release create "${TAG}" "${ZIP}#${ZIP_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${TAG}" \
+            --notes "${notes}" \
+            ${draft_flag}
+
+      - name: Summary
+        run: |
+          {
+            echo "### iceberg-kafka-connect-runtime"
+            echo ""
+            echo "- source ref: \`${{ inputs.ref }}\`"
+            echo "- artifact: \`${{ steps.artifact.outputs.name }}\` (${{ steps.artifact.outputs.size }})"
+            echo "- sha512: \`${{ steps.artifact.outputs.sha512 }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
