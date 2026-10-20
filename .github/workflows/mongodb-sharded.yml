@@ -40,7 +40,7 @@ jobs:
         include:
           # LTS. 운영(aiaas-search-mongodb)이 쓰는 계열.
           - series: '8.0'
-            version: '8.0.30'
+            version: '8.0.34'
           - series: '8.2'
             version: '8.2.12'
     steps:

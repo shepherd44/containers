@@ -38,7 +38,7 @@ ARG TARGETARCH
 # bitnami 스캐폴딩을 제공하는 마지막 스택스미스 tarball. 더 올릴 수 없다.
 ARG BITNAMI_SCAFFOLD_VERSION="8.0.13-0"
 # 실제로 실행될 서버 버전. 이 값만 바꾸면 된다.
-ARG MONGODB_VERSION="8.0.30"
+ARG MONGODB_VERSION="8.0.34"
 
 LABEL org.opencontainers.image.base.name="docker.io/bitnami/minideb:bookworm" \
       org.opencontainers.image.description="MongoDB sharded (bitnami scaffolding + upstream server binaries)" \
